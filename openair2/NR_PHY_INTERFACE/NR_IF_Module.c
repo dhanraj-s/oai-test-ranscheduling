@@ -389,6 +389,9 @@ static void pnf_send_slot_ind(module_id_t module_id, int CC_id, int frame, int s
 
 static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame, int slot)
 {
+
+  //printf("\n\n\n\nrun_scheduler_monolithic(): HERE!!\n\n\n\n");
+
   NR_IF_Module_t *ifi = nr_if_inst[module_id];
 
   LOG_D(NR_MAC, "Calling scheduler for %d.%d\n", frame, slot);

@@ -741,6 +741,7 @@ int main( int argc, char **argv ) {
 
     if (NFAPI_MODE != NFAPI_MODE_PNF && NFAPI_MODE != NFAPI_MODE_VNF && NFAPI_MODE != NFAPI_MODE_AERIAL) {
       init_eNB_afterRU();
+      printf("\n\n\n\n\nHERE!\n\n\n\n");
     }
 
     // connect the TX/RX buffers

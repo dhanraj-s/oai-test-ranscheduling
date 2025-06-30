@@ -584,6 +584,8 @@ typedef struct UEsched_s {
   NR_UE_info_t * UE;
 } UEsched_t;
 
+
+// Possibly a bug. 
 static int comparator(const void *p, const void *q) {
   return ((UEsched_t*)p)->coef < ((UEsched_t*)q)->coef;
 }
@@ -615,8 +617,13 @@ static void pf_dl(module_id_t module_id,
     if (sched_ctrl->ul_failure)
       continue;
 
+    // stats are READ ONLY (see const).
     const NR_mac_dir_stats_t *stats = &UE->mac_stats.dl;
+    
+    // sched_pdsch will probably be written to.
     NR_sched_pdsch_t *sched_pdsch = &sched_ctrl->sched_pdsch;
+
+    // Basically: for this UE, PDSCH will carry any Retx if there are any. 
     /* get the PID of a HARQ process awaiting retrnasmission, or -1 otherwise */
     sched_pdsch->dl_harq_pid = sched_ctrl->retrans_dl_harq.head;
     /* Calculate Throughput */
@@ -631,6 +638,8 @@ static void pf_dl(module_id_t module_id,
       continue;
 
     /* retransmission */
+    // Go back to line 626 to see why this is done.
+    // Don't need the details inside the if.
     if (sched_pdsch->dl_harq_pid >= 0) {
       NR_beam_alloc_t beam = beam_allocation_procedure(&mac->beam_info, frame, slot, UE->UE_beam_index, slots_per_frame);
       bool sch_ret = beam.idx >= 0;
@@ -669,7 +678,7 @@ static void pf_dl(module_id_t module_id,
         sched_pdsch->mcs = min(bo->max_mcs, max_mcs);
         sched_ctrl->dl_bler_stats.mcs = sched_pdsch->mcs;
       } else
-        sched_pdsch->mcs = get_mcs_from_bler(bo, stats, &sched_ctrl->dl_bler_stats, max_mcs, frame);
+        sched_pdsch->mcs = get_mcs_from_bler(bo, stats, &sched_ctrl->dl_bler_stats, max_mcs, frame); // IMPORTANT LINE. SEE HOW TO SET MCS FROM HERE!
       sched_pdsch->nrOfLayers = get_dl_nrOfLayers(sched_ctrl, current_BWP->dci_format);
       sched_pdsch->pm_index =
           get_pm_index(mac, UE, current_BWP->dci_format, sched_pdsch->nrOfLayers, mac->radio_config.pdsch_AntennaPorts.XP);

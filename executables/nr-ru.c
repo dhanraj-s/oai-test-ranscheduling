@@ -1257,7 +1257,7 @@ void *ru_thread(void *param)
     // synchronization on input FH interface, acquire signals/data and block
     LOG_D(PHY,"[RU_thread] read data: frame_rx = %d, tti_rx = %d\n", frame, slot);
 
-    if (ru->fh_south_in) ru->fh_south_in(ru,&frame,&slot);
+    if (ru->fh_south_in) ru->fh_south_in(ru,&frame,&slot); //rx_rf call here
     else AssertFatal(1==0, "No fronthaul interface at south port");
 
     if (initial_wait == 1 && proc->frame_rx < 300) {

@@ -147,7 +147,7 @@ void *L1_rx_thread(void *arg)
      if (res == NULL)
        break;
      processingData_L1_t *info = (processingData_L1_t *)NotifiedFifoData(res);
-     rx_func(info);
+     rx_func(info); // figure out what this info is. what frame_rx, slot_rx does it contain?
      delNotifiedFIFO_elt(res);
   }
   return NULL;

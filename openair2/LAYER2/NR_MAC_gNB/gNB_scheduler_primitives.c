@@ -3219,6 +3219,11 @@ void fapi_beam_index_allocation(NR_ServingCellConfigCommon_t *scc, gNB_MAC_INST 
 
 static inline int get_beam_index(const NR_beam_info_t *beam_info, int frame, int slot, int slots_per_frame)
 {
+  // frame * slots_per_frame + slot takes you to 'slot' within the current 'frame'
+  // or number of slots starting from system frame 0 upto the current slot
+  // beam_duration = number of slots scheduler is tied to a beam
+  // dividing by beam_info->beam_duration gives the number of beams seen
+  // which column of the beam allocation matrix to use!
   return ((frame * slots_per_frame + slot) / beam_info->beam_duration) % beam_info->beam_allocation_size;
 }
 
