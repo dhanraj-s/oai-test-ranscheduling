@@ -88,6 +88,8 @@ unsigned short config_frames[4] = {2,9,11,13};
 #include "openair1/SCHED_NR/sched_nr.h"
 #include "openair2/SDAP/nr_sdap/nr_sdap.h"
 
+#include "custom_scheduler.h"
+
 pthread_cond_t nfapi_sync_cond;
 pthread_mutex_t nfapi_sync_mutex;
 int nfapi_sync_var=-1; //!< protected by mutex \ref nfapi_sync_mutex
@@ -552,9 +554,15 @@ static void initialize_agent(ngran_node_t node_type, e2_agent_args_t oai_args)
 
 void init_eNB_afterRU(void);
 configmodule_interface_t *uniqCfg = NULL;
+
+UEsched_t UEsched_list[64];
+bool use_custom_scheduler = false;
+
 int main( int argc, char **argv ) {
   int ru_id, CC_id = 0;
   start_background_system();
+
+  //sem_init(&custom_scheduler, 0, 0);
 
   ///static configuration for NR at the moment
   if ((uniqCfg = load_configmodule(argc, argv, CONFIG_ENABLECMDLINEONLY)) == NULL) {
@@ -773,6 +781,8 @@ int main( int argc, char **argv ) {
 
   free(pckg);
   logClean();
+
+  //sem_destroy(&custom_scheduler);
   printf("Bye.\n");
   return 0;
 }
