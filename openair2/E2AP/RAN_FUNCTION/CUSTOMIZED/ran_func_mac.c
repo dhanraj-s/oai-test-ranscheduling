@@ -17,7 +17,7 @@
  *-------------------------------------------------------------------------------
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
- */
+ */ 
 #include <unistd.h>
 #include "ran_func_mac.h"
 #include <assert.h>
@@ -135,8 +135,8 @@ void read_mac_setup_sm(void* data)
   assert(0 !=0 && "Not supported");
 }
 
-void create_ue_sched_list( UEsched_t *UE_sched, mac_ctrl_msg_t mac_ctrl_msg, NR_UE_info_t **UE_list) {
-
+void create_ue_sched_list( UEsched_t *UE_sched, mac_ctrl_msg_t mac_ctrl_msg, NR_UE_info_t **UE_list, pthread_mutex_t *mutex) {
+  pthread_mutex_lock(mutex);
   for(int i=0; i<64; ++i) {
     UE_sched[i].UE = NULL;
     UE_sched[i].coef = 1.0;
@@ -152,6 +152,9 @@ void create_ue_sched_list( UEsched_t *UE_sched, mac_ctrl_msg_t mac_ctrl_msg, NR_
       }
     }
   }
+
+  use_custom_scheduler = true;
+  pthread_mutex_unlock(mutex);
 }
 
 int get_mcs_from_ctrl(int rnti, mac_ctrl_msg_t mac_ctrl_msg) {
@@ -184,9 +187,11 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   /*Create the UE order for scheduling.*/
   gNB_MAC_INST *mac = RC.nrmac[mod_id];
   NR_UEs_t *UE_info = &mac->UE_info;
-  create_ue_sched_list(UEsched_list, mac_ctrl_msg, UE_info->connected_ue_list);
-  use_custom_scheduler = true;
 
+  pthread_mutex_t list_mutex;
+  pthread_mutex_init(&list_mutex, NULL);
+  create_ue_sched_list(UEsched_list, mac_ctrl_msg, UE_info->connected_ue_list, &list_mutex);
+  pthread_mutex_destroy(&list_mutex);
   sm_ag_if_ans_t ans = {0};
   return ans;
 }

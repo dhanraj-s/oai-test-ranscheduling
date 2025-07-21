@@ -680,49 +680,53 @@ static void pf_dl(module_id_t module_id,
       sched_pdsch->nrOfLayers = get_dl_nrOfLayers(sched_ctrl, current_BWP->dci_format);
       sched_pdsch->pm_index =
           get_pm_index(mac, UE, current_BWP->dci_format, sched_pdsch->nrOfLayers, mac->radio_config.pdsch_AntennaPorts.XP);
-      // const uint8_t Qm = nr_get_Qm_dl(sched_pdsch->mcs, current_BWP->mcsTableIdx);
-      // const uint16_t R = nr_get_code_rate_dl(sched_pdsch->mcs, current_BWP->mcsTableIdx);
-      // uint32_t tbs = nr_compute_tbs(Qm,
-      //                               R,
-      //                               1, /* rbSize */
-      //                               10, /* hypothetical number of slots */
-      //                               0, /* N_PRB_DMRS * N_DMRS_SLOT */
-      //                               0 /* N_PRB_oh, 0 for initialBWP */,
-      //                               0 /* tb_scaling */,
-      //                               sched_pdsch->nrOfLayers) >> 3;
-      // float coeff_ue = (float) tbs / UE->dl_thr_ue;
+      const uint8_t Qm = nr_get_Qm_dl(sched_pdsch->mcs, current_BWP->mcsTableIdx);
+      const uint16_t R = nr_get_code_rate_dl(sched_pdsch->mcs, current_BWP->mcsTableIdx);
+      uint32_t tbs = nr_compute_tbs(Qm,
+                                    R,
+                                    1, /* rbSize */
+                                    10, /* hypothetical number of slots */
+                                    0, /* N_PRB_DMRS * N_DMRS_SLOT */
+                                    0 /* N_PRB_oh, 0 for initialBWP */,
+                                    0 /* tb_scaling */,
+                                    sched_pdsch->nrOfLayers) >> 3;
+      float coeff_ue = (float) tbs / UE->dl_thr_ue;
        LOG_D(NR_MAC, "[UE %04x][%4d.%2d] b %d, thr_ue %f, tbs %d, coeff_ue %f\n",
              UE->rnti,
              frame,
              slot,
              b,
-             UE->dl_thr_ue);//,
-             //tbs,
-             //coeff_ue);
+             UE->dl_thr_ue,
+             tbs,
+             coeff_ue);
       /* Create UE_sched list for UEs eligible for new transmission*/
-      UE_sched[curUE].coef=1;//coeff_ue;
+      UE_sched[curUE].coef=coeff_ue;
       UE_sched[curUE].UE=UE;
       curUE++;
     }
   }
 
-  //qsort(UE_sched, sizeofArray(UE_sched), sizeof(UEsched_t), comparator);
+  qsort(UE_sched, sizeofArray(UE_sched), sizeof(UEsched_t), comparator);
+  //UEsched_t *iterator = UE_sched;
+  
   UEsched_t *iterator = NULL;
   if(use_custom_scheduler) {
     printf("USING CUSTOM xApp SCHEDULER\n");
-    iterator = UEsched_list;  
+    iterator = UEsched_list;
+    use_custom_scheduler = false;  
   } else {
     printf("USING RAN SCHEDULER\n");
     iterator = UE_sched;
   }
-  //UEsched_t *iterator = (use_custom_scheduler) ? UEsched_list : UE_sched;
-  use_custom_scheduler = false;
 
   const int min_rbSize = 5;
 
   /* Loop UE_sched to find max coeff and allocate transmission */
-  while (iterator->UE != NULL) {
 
+  if(UE_sched[0].UE == NULL)
+    return;
+
+  while (iterator->UE != NULL) {
     NR_UE_sched_ctrl_t *sched_ctrl = &iterator->UE->UE_sched_ctrl;
     const uint16_t rnti = iterator->UE->rnti;
 
@@ -875,7 +879,7 @@ static void pf_dl(module_id_t module_id,
 
 static void nr_dlsch_preprocessor(module_id_t module_id, frame_t frame, slot_t slot)
 {
-  printf("nr_dlsch_preprocessor: frame %d, slot %d\n",frame, slot);
+  //printf("nr_dlsch_preprocessor: frame %d, slot %d\n",frame, slot);
   gNB_MAC_INST *mac = RC.nrmac[module_id];
   NR_UEs_t *UE_info = &mac->UE_info;
 
@@ -945,7 +949,7 @@ void nr_schedule_ue_spec(module_id_t module_id,
     return;
 
   /* PREPROCESSOR */
-  printf("nr_schedule_ue_spec: before pre_processor_dl\n");
+  //printf("nr_schedule_ue_spec: before pre_processor_dl\n");
 
   /*Comment out this call. Do the preprocessing via xApp MAC control callback.*/
   gNB_mac->pre_processor_dl(module_id, frame, slot);
@@ -953,7 +957,7 @@ void nr_schedule_ue_spec(module_id_t module_id,
   /* Wait until resource allocation is done via MAC control callback */
   //sem_wait(&custom_scheduler);
 
-  printf("nr_schedule_ue_spec: after pre_processor_dl\n");
+  //printf("nr_schedule_ue_spec: after pre_processor_dl\n");
 
   const int CC_id = 0;
   NR_ServingCellConfigCommon_t *scc = gNB_mac->common_channels[CC_id].ServingCellConfigCommon;

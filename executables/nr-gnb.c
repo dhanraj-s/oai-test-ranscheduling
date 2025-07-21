@@ -95,9 +95,9 @@ static void tx_func(processingData_L1tx_t *info)
   }
 
   start_meas(&gNB->slot_indication_stats);
-  printf("right before NR_slot_indication=run_scheduler_monolithic call.\n\n\n");
+  //printf("right before NR_slot_indication=run_scheduler_monolithic call.\n\n\n");
   ifi->NR_slot_indication(module_id, CC_id, frame_tx, slot_tx);
-  printf("right after NR_slot_indication=run_scheduler_monolithic call.\n\n\n");
+  //printf("right after NR_slot_indication=run_scheduler_monolithic call.\n\n\n");
   stop_meas(&gNB->slot_indication_stats);
   gNB->msgDataTx->timestamp_tx = info->timestamp_tx;
   info = gNB->msgDataTx;
