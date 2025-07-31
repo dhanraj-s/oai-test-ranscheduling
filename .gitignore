@@ -27,3 +27,5 @@ nfapi_nr_interface_scf
 *.out
 CMakeUserPresets.json
 t
+
+./openair2/E2AP/flexric_old
