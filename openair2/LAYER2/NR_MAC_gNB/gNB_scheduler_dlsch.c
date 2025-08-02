@@ -29,6 +29,7 @@
 
  */
 
+#include <stdbool.h> 
 #include "../../../executables/custom_scheduler.h"
 
 #include "common/utils/nr/nr_common.h"
@@ -52,6 +53,37 @@
 #define HALFWORD 16
 #define WORD 32
 //#define SIZE_OF_POINTER sizeof (void *)
+#define NUM_FRAMES 1024
+#define THRESHOLD 5
+#define MAX_BUF_SLOTS 10 
+
+typedef struct {
+  int frame;
+  int slot
+} frame_slot;
+
+bool frame_slot_within_range(frame_slot const x, frame_slot const y, int thresh) {
+/*checks whether frame_slot x and frame_slot y are within 'thresh' slots of each other.*/
+  frame_slot first, second;
+  if(x.frame == y.frame) {
+    return ( (x.slot - y.slot) <= thresh ) || ( (x.slot - y.slot) >= -thresh );
+  } else if((x.frame+1)%NUM_FRAMES==y.frame) {
+    first=x; second=y;
+  } else if((y.frame+1)%NUM_FRAMES==x.frame) {
+    first=y; second=x;
+  } else {
+    return false;
+  }
+
+  gNB_MAC_INST *mac = RC.nrmac[0];
+  int slots_per_frame = mac->frame_structure.numb_slots_frame;
+  return (second.slot + (slots_per_frame-second.slot-1) <= thresh);
+}
+
+typedef struct frame_slot_buffer {
+  frame_slot buffer[THRESHOLD][MAX_BUF_SLOTS];
+  int end[MAX_BUF_SLOTS];
+} fs_buffer;
 
 int get_dl_tda(const gNB_MAC_INST *nrmac, int slot)
 {
@@ -707,20 +739,20 @@ static void pf_dl(module_id_t module_id,
   }
 
   qsort(UE_sched, sizeofArray(UE_sched), sizeof(UEsched_t), comparator);
-  //UEsched_t *iterator = UE_sched;
+  // UEsched_t *iterator = UE_sched;
   
   UEsched_t *iterator = NULL;
   if(use_custom_scheduler) {
-    printf("USING CUSTOM xApp SCHEDULER\n");
+    printf("frame: %d, slot: %d ---> USING CUSTOM xApp SCHEDULER\n",frame,slot);
     iterator = UEsched_list;
     use_custom_scheduler = false;  
   } else {
-    printf("USING RAN SCHEDULER\n");
+    printf("frame: %d, slot: %d ---> USING RAN SCHEDULER\n",frame,slot);
     iterator = UE_sched;
   }
 
   const int min_rbSize = 5;
-
+  
   /* Loop UE_sched to find max coeff and allocate transmission */
 
   if(UE_sched[0].UE == NULL)
