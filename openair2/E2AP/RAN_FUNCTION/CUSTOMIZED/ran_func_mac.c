@@ -69,7 +69,7 @@ bool read_mac_sm(void* data)
     //rd->slot = 0; // previously had slot info, but the gNB runs multiple slots
                   // in parallel, so this has no real meaning
     rd->slot = RC.ru[0]->proc.tti_tx;
-    printf("MAC ind msg: frame = %d, slot = %d\n", rd->frame, rd->slot);
+    //printf("MAC ind msg: frame = %d, slot = %d\n", rd->frame, rd->slot);
     rd->dl_aggr_tbs = UE->mac_stats.dl.total_bytes;
     rd->ul_aggr_tbs = UE->mac_stats.ul.total_bytes;
 
@@ -189,6 +189,8 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   /*Create the UE order for scheduling.*/
   gNB_MAC_INST *mac = RC.nrmac[mod_id];
   NR_UEs_t *UE_info = &mac->UE_info;
+
+  printf("write_ctrl_mac_sm: frame= %d slot= %d\n", mac_ctrl_msg.frame, mac_ctrl_msg.slot);
 
   pthread_mutex_t list_mutex;
   pthread_mutex_init(&list_mutex, NULL);

@@ -82,8 +82,10 @@ bool frame_slot_within_range(frame_slot const x, frame_slot const y, int thresh)
 
 typedef struct frame_slot_buffer {
   frame_slot buffer[THRESHOLD][MAX_BUF_SLOTS];
-  int end[MAX_BUF_SLOTS];
+  int end[THRESHOLD];
 } fs_buffer;
+
+
 
 int get_dl_tda(const gNB_MAC_INST *nrmac, int slot)
 {
