@@ -46,6 +46,7 @@
 #include "executables/softmodem-common.h"
 #include "../../../nfapi/oai_integration/vendor_ext.h"
 
+#include "gNB_frame_slot_buffer.h"
 ////////////////////////////////////////////////////////
 /////* DLSCH MAC PDU generation (6.1.2 TS 38.321) */////
 ////////////////////////////////////////////////////////
@@ -53,14 +54,6 @@
 #define HALFWORD 16
 #define WORD 32
 //#define SIZE_OF_POINTER sizeof (void *)
-#define NUM_FRAMES 1024
-#define THRESHOLD 5
-#define MAX_BUF_SLOTS 10 
-
-typedef struct {
-  int frame;
-  int slot
-} frame_slot;
 
 bool frame_slot_within_range(frame_slot const x, frame_slot const y, int thresh) {
 /*checks whether frame_slot x and frame_slot y are within 'thresh' slots of each other.*/
@@ -79,13 +72,6 @@ bool frame_slot_within_range(frame_slot const x, frame_slot const y, int thresh)
   int slots_per_frame = mac->frame_structure.numb_slots_frame;
   return (second.slot + (slots_per_frame-second.slot-1) <= thresh);
 }
-
-typedef struct frame_slot_buffer {
-  frame_slot buffer[THRESHOLD][MAX_BUF_SLOTS];
-  int end[THRESHOLD];
-} fs_buffer;
-
-
 
 int get_dl_tda(const gNB_MAC_INST *nrmac, int slot)
 {
@@ -744,6 +730,28 @@ static void pf_dl(module_id_t module_id,
   // UEsched_t *iterator = UE_sched;
   
   UEsched_t *iterator = NULL;
+
+  int curr_slot_idx = slot % THRESHOLD;
+  frame_slot curr_fs = {.frame = frame, .slot = slot};
+
+  pthread_mutex_lock(&SLOT_BUFFER_LOCK);
+  if(SLOT_BUFFER[curr_slot_idx].frame == -1) {
+    use_custom_scheduler = false;
+  } 
+  else if(frame_slot_within_range(SLOT_BUFFER[curr_slot_idx], curr_fs, THRESHOLD)){
+    // some bug here (messages in same frame but within 10 slots end up here.)
+    use_custom_scheduler = true;
+    printf("Message from frame=%d, slot=%d scheduled at frame=%d, slot=%d\n"
+    , SLOT_BUFFER[curr_slot_idx].frame, SLOT_BUFFER[curr_slot_idx].slot,
+    frame, slot);
+  }
+  else {
+    use_custom_scheduler = false;
+  }
+  SLOT_BUFFER[curr_slot_idx].frame = -1; 
+  SLOT_BUFFER[curr_slot_idx].slot = -1;
+  pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
+
   if(use_custom_scheduler) {
     printf("frame: %d, slot: %d ---> USING CUSTOM xApp SCHEDULER\n",frame,slot);
     iterator = UEsched_list;

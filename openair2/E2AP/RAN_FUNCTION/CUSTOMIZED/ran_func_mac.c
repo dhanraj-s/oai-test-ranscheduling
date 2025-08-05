@@ -27,6 +27,7 @@
 #include <../../../LAYER2/nr_rlc/nr_rlc_oai_api.h>
 #include "../../../NR_PHY_INTERFACE/NR_IF_Module.h"
 #include "../../../../executables/custom_scheduler.h"
+#include "../../../LAYER2/NR_MAC_gNB/gNB_frame_slot_buffer.h"
 
 static
 const int mod_id = 0;
@@ -155,7 +156,7 @@ void create_ue_sched_list( UEsched_t *UE_sched, mac_ctrl_msg_t mac_ctrl_msg, NR_
     }
   }
 
-  use_custom_scheduler = true;
+  //use_custom_scheduler = true;
   pthread_mutex_unlock(mutex);
 }
 
@@ -191,6 +192,11 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   NR_UEs_t *UE_info = &mac->UE_info;
 
   printf("write_ctrl_mac_sm: frame= %d slot= %d\n", mac_ctrl_msg.frame, mac_ctrl_msg.slot);
+
+  pthread_mutex_lock(&SLOT_BUFFER_LOCK);
+  SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].frame = mac_ctrl_msg.frame; 
+  SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].slot = mac_ctrl_msg.slot;
+  pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
 
   pthread_mutex_t list_mutex;
   pthread_mutex_init(&list_mutex, NULL);

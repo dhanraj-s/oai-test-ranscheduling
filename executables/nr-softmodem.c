@@ -89,6 +89,7 @@ unsigned short config_frames[4] = {2,9,11,13};
 #include "openair2/SDAP/nr_sdap/nr_sdap.h"
 
 #include "custom_scheduler.h"
+#include "../openair2/LAYER2/NR_MAC_gNB/gNB_frame_slot_buffer.h"
 
 pthread_cond_t nfapi_sync_cond;
 pthread_mutex_t nfapi_sync_mutex;
@@ -558,9 +559,18 @@ configmodule_interface_t *uniqCfg = NULL;
 UEsched_t UEsched_list[64];
 bool use_custom_scheduler = false;
 
+frame_slot SLOT_BUFFER[THRESHOLD];
+pthread_mutex_t SLOT_BUFFER_LOCK;
+
 int main( int argc, char **argv ) {
   int ru_id, CC_id = 0;
   start_background_system();
+
+  pthread_mutex_init(&SLOT_BUFFER_LOCK, NULL);
+  for(int i=0; i<THRESHOLD; ++i) {
+    SLOT_BUFFER[i].frame = -1;
+    SLOT_BUFFER[i].slot = -1;
+  }
 
   //sem_init(&custom_scheduler, 0, 0);
 
@@ -776,6 +786,8 @@ int main( int argc, char **argv ) {
   pthread_mutex_destroy(&sync_mutex);
   pthread_cond_destroy(&nfapi_sync_cond);
   pthread_mutex_destroy(&nfapi_sync_mutex);
+
+  pthread_mutex_destroy(&SLOT_BUFFER_LOCK);
 
   time_manager_finish();
 
