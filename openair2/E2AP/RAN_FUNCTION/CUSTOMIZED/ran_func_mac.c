@@ -191,8 +191,8 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   gNB_MAC_INST *mac = RC.nrmac[mod_id];
   NR_UEs_t *UE_info = &mac->UE_info;
 
-  printf("write_ctrl_mac_sm: frame= %d slot= %d\n", mac_ctrl_msg.frame, mac_ctrl_msg.slot);
-
+  printf("write_ctrl_mac_sm:\n\tControl message contains: frame= %d slot= %d\n\tCurrent frame,slot: frame=%d, slot= %d\n", 
+    mac_ctrl_msg.frame, mac_ctrl_msg.slot, frame, slot);
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
   SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].frame = mac_ctrl_msg.frame; 
   SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].slot = mac_ctrl_msg.slot;
