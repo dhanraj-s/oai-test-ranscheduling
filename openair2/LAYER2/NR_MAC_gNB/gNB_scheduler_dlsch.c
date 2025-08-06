@@ -59,7 +59,7 @@ bool frame_slot_within_range(frame_slot const x, frame_slot const y, int thresh)
 /*checks whether frame_slot x and frame_slot y are within 'thresh' slots of each other.*/
   frame_slot first, second;
   if(x.frame == y.frame) {
-    return ( (x.slot - y.slot) <= thresh ) || ( (x.slot - y.slot) >= -thresh );
+    return ( (x.slot - y.slot) <= thresh ) && ( (x.slot - y.slot) >= -thresh );
   } else if((x.frame+1)%NUM_FRAMES==y.frame) {
     first=x; second=y;
   } else if((y.frame+1)%NUM_FRAMES==x.frame) {
