@@ -70,7 +70,9 @@ bool read_mac_sm(void* data)
     //rd->slot = 0; // previously had slot info, but the gNB runs multiple slots
                   // in parallel, so this has no real meaning
     rd->slot = RC.ru[0]->proc.tti_tx;
-    //printf("MAC ind msg: frame = %d, slot = %d\n", rd->frame, rd->slot);
+    //rd->slot = slot_identifier;
+    printf("MAC ind msg: frame = %d, slot = %d\n", rd->frame, rd->slot);
+
     rd->dl_aggr_tbs = UE->mac_stats.dl.total_bytes;
     rd->ul_aggr_tbs = UE->mac_stats.ul.total_bytes;
 
@@ -128,7 +130,7 @@ bool read_mac_sm(void* data)
 
     ++i;
   }
-
+  slot_identifier++;
   return num_ues > 0;
 }
 
@@ -174,6 +176,11 @@ int get_rbSize_from_ctrl(int rnti, mac_ctrl_msg_t mac_ctrl_msg) {
   }
 }
 
+static int encode_frame_slot(frame_slot const fs) {
+  gNB_MAC_INST *mac = RC.nrmac[0];
+  int slots_per_frame = mac->frame_structure.numb_slots_frame;
+  return fs.frame * slots_per_frame + fs.slot; 
+}
 
 sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
 {
@@ -194,8 +201,10 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   printf("write_ctrl_mac_sm:\n\tControl message contains: frame= %d slot= %d\n\tCurrent frame,slot: frame=%d, slot= %d\n", 
     mac_ctrl_msg.frame, mac_ctrl_msg.slot, frame, slot);
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
-  SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].frame = mac_ctrl_msg.frame; 
-  SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD].slot = mac_ctrl_msg.slot;
+  frame_slot fs = {.frame=mac_ctrl_msg.frame, .slot=mac_ctrl_msg.slot};
+  int index = encode_frame_slot(fs);
+  SLOT_BUFFER[index % THRESHOLD].frame = mac_ctrl_msg.frame; 
+  SLOT_BUFFER[index % THRESHOLD].slot = mac_ctrl_msg.slot;
   pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
 
   pthread_mutex_t list_mutex;

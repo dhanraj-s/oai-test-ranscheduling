@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdint.h>
 
 typedef struct {
   int frame;
@@ -16,4 +17,5 @@ typedef struct {
 extern frame_slot SLOT_BUFFER[THRESHOLD];
 extern pthread_mutex_t SLOT_BUFFER_LOCK;
 
+extern uint32_t slot_identifier;
 #endif

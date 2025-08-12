@@ -562,6 +562,8 @@ bool use_custom_scheduler = false;
 frame_slot SLOT_BUFFER[THRESHOLD];
 pthread_mutex_t SLOT_BUFFER_LOCK;
 
+uint32_t slot_identifier = 0;
+
 int main( int argc, char **argv ) {
   int ru_id, CC_id = 0;
   start_background_system();
