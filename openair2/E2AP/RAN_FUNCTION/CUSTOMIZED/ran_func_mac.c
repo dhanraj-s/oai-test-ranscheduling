@@ -69,10 +69,11 @@ bool read_mac_sm(void* data)
     rd->frame = RC.nrmac[mod_id]->frame;
     //rd->slot = 0; // previously had slot info, but the gNB runs multiple slots
                   // in parallel, so this has no real meaning
-    rd->slot = RC.ru[0]->proc.tti_tx;
-    //rd->slot = slot_identifier;
-    printf("MAC ind msg: frame = %d, slot = %d\n", rd->frame, rd->slot);
-
+    //rd->slot = RC.ru[0]->proc.tti_tx;
+    rd->slot = slot_identifier;
+    printf("\tMAC ind msg: slot_identifier: %d", rd->slot);
+    printf("\tread_mac_sm:\tframe = %d, slot = %d\n", RC.nrmac[mod_id]->frame,
+      RC.ru[0]->proc.tti_tx);
     rd->dl_aggr_tbs = UE->mac_stats.dl.total_bytes;
     rd->ul_aggr_tbs = UE->mac_stats.ul.total_bytes;
 
@@ -130,7 +131,7 @@ bool read_mac_sm(void* data)
 
     ++i;
   }
-  slot_identifier++;
+  //slot_identifier++; why did i write this?
   return num_ues > 0;
 }
 
@@ -176,11 +177,11 @@ int get_rbSize_from_ctrl(int rnti, mac_ctrl_msg_t mac_ctrl_msg) {
   }
 }
 
-static int encode_frame_slot(frame_slot const fs) {
-  gNB_MAC_INST *mac = RC.nrmac[0];
-  int slots_per_frame = mac->frame_structure.numb_slots_frame;
-  return fs.frame * slots_per_frame + fs.slot; 
-}
+// static int encode_frame_slot(frame_slot const fs) {
+//   gNB_MAC_INST *mac = RC.nrmac[0];
+//   int slots_per_frame = mac->frame_structure.numb_slots_frame;
+//   return fs.frame * slots_per_frame + fs.slot; 
+// }
 
 sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
 {
@@ -198,13 +199,15 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   gNB_MAC_INST *mac = RC.nrmac[mod_id];
   NR_UEs_t *UE_info = &mac->UE_info;
 
-  printf("write_ctrl_mac_sm:\n\tControl message contains: frame= %d slot= %d\n\tCurrent frame,slot: frame=%d, slot= %d\n", 
-    mac_ctrl_msg.frame, mac_ctrl_msg.slot, frame, slot);
+  printf("write_ctrl_mac_sm:\n\tControl message contains: slot identifier= %u\n\tCurrent frame,slot: frame=%d, slot= %d\n\t"
+    "current slot identifier: %u\n", 
+    mac_ctrl_msg.slot, frame, slot, slot_identifier);
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
-  frame_slot fs = {.frame=mac_ctrl_msg.frame, .slot=mac_ctrl_msg.slot};
-  int index = encode_frame_slot(fs);
-  SLOT_BUFFER[index % THRESHOLD].frame = mac_ctrl_msg.frame; 
-  SLOT_BUFFER[index % THRESHOLD].slot = mac_ctrl_msg.slot;
+  //frame_slot fs = {.frame=mac_ctrl_msg.frame, .slot=mac_ctrl_msg.slot};
+  //int index = encode_frame_slot(fs);
+  //SLOT_BUFFER[index % THRESHOLD].frame = mac_ctrl_msg.frame; 
+  //SLOT_BUFFER[index % THRESHOLD].slot = mac_ctrl_msg.slot;
+  SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD] = mac_ctrl_msg.slot;
   pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
 
   pthread_mutex_t list_mutex;

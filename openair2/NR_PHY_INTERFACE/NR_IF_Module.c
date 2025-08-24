@@ -46,6 +46,8 @@
 #include "utils.h"
 #include "nfapi/oai_integration/nfapi_pnf.h"
 
+#include "openair2/LAYER2/NR_MAC_gNB/gNB_frame_slot_buffer.h"
+
 #define MAX_IF_MODULES 100
 
 static NR_IF_Module_t *nr_if_inst[MAX_IF_MODULES];
@@ -391,8 +393,11 @@ static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame
 {
 
   // printf("\n\n\n\nrun_scheduler_monolithic(): HERE!!");
-  // printf("\tframe=%d slot=%d\n\n\n\n", frame, slot);
+  // printf("\run_scheduler_monolithic: frame=%d slot=%d\n\n\n\n", frame, slot);
   NR_IF_Module_t *ifi = nr_if_inst[module_id];
+
+  printf("run_scheduler_monolithic: (%u, %u) slot_identifier: %u\n", 
+    frame, slot, slot_identifier);
 
   LOG_D(NR_MAC, "Calling scheduler for %d.%d\n", frame, slot);
   NR_Sched_Rsp_t *sched_info = allocate_sched_response();
@@ -405,6 +410,11 @@ static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame
   sched_info->CC_id = CC_id;
   sched_info->frame = frame;
   sched_info->slot = slot;
+
+  pthread_mutex_lock(&slot_identifier_lock);
+  slot_identifier++;
+  pthread_mutex_unlock(&slot_identifier_lock);
+
   /*
   sched_info->DL_req      = &mac->DL_req[CC_id];
   sched_info->UL_dci_req  = &mac->UL_dci_req[CC_id];

@@ -559,19 +559,22 @@ configmodule_interface_t *uniqCfg = NULL;
 UEsched_t UEsched_list[64];
 bool use_custom_scheduler = false;
 
-frame_slot SLOT_BUFFER[THRESHOLD];
+uint32_t SLOT_BUFFER[THRESHOLD];
 pthread_mutex_t SLOT_BUFFER_LOCK;
 
-uint32_t slot_identifier = 0;
+pthread_mutex_t slot_identifier_lock;
+uint16_t slot_identifier = 0;
 
 int main( int argc, char **argv ) {
   int ru_id, CC_id = 0;
   start_background_system();
 
   pthread_mutex_init(&SLOT_BUFFER_LOCK, NULL);
+  pthread_mutex_init(&slot_identifier_lock, NULL);
   for(int i=0; i<THRESHOLD; ++i) {
-    SLOT_BUFFER[i].frame = -1;
-    SLOT_BUFFER[i].slot = -1;
+    //SLOT_BUFFER[i].frame = -1;
+    //SLOT_BUFFER[i].slot = -1;
+    SLOT_BUFFER[i] = UINT32_MAX;
   }
 
   //sem_init(&custom_scheduler, 0, 0);
@@ -789,6 +792,7 @@ int main( int argc, char **argv ) {
   pthread_cond_destroy(&nfapi_sync_cond);
   pthread_mutex_destroy(&nfapi_sync_mutex);
 
+  pthread_mutex_destroy(&slot_identifier_lock);
   pthread_mutex_destroy(&SLOT_BUFFER_LOCK);
 
   time_manager_finish();

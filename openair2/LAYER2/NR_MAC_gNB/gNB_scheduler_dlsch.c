@@ -55,31 +55,38 @@
 #define WORD 32
 //#define SIZE_OF_POINTER sizeof (void *)
 
-static int encode_frame_slot(frame_slot const fs) {
-  gNB_MAC_INST *mac = RC.nrmac[0];
-  int slots_per_frame = mac->frame_structure.numb_slots_frame;
-  return fs.frame * slots_per_frame + fs.slot; 
-}
-
-bool to_schedule(frame_slot const current, frame_slot const buffered) {
-  // decide whether to schedule the buffered slot in the current slot.
-  gNB_MAC_INST *mac = RC.nrmac[0];
-  int slots_per_frame = mac->frame_structure.numb_slots_frame;
-
-  int current_enc = encode_frame_slot(current), buffer_enc = encode_frame_slot(buffered);
-  int M = slots_per_frame * NUM_FRAMES;
-  if(buffer_enc >= M-THRESHOLD && buffer_enc <= M-1) {
-    if(current_enc >= buffer_enc && current_enc <= M-1) return true;
-    if(current_enc >= 0 && current_enc <= buffer_enc+THRESHOLD-M) return true;
-    return false;
-  }
-  return (current_enc >= buffer_enc && current_enc <= buffer_enc+THRESHOLD);
-
-}
-
-// bool to_schedule(uint32_t const current, uint32_t const buffered) {
-//   return ( (buffered+THRESHOLD) % UINT32_MAX == current );
+// static int encode_frame_slot(frame_slot const fs) {
+//   gNB_MAC_INST *mac = RC.nrmac[0];
+//   int slots_per_frame = mac->frame_structure.numb_slots_frame;
+//   return fs.frame * slots_per_frame + fs.slot; 
 // }
+
+// bool to_schedule(frame_slot const current, frame_slot const buffered) {
+//   // decide whether to schedule the buffered slot in the current slot.
+//   gNB_MAC_INST *mac = RC.nrmac[0];
+//   int slots_per_frame = mac->frame_structure.numb_slots_frame;
+
+//   int current_enc = encode_frame_slot(current), buffer_enc = encode_frame_slot(buffered);
+//   int M = slots_per_frame * NUM_FRAMES;
+//   if(buffer_enc >= M-THRESHOLD && buffer_enc <= M-1) {
+//     if(current_enc >= buffer_enc && current_enc <= M-1) return true;
+//     if(current_enc >= 0 && current_enc <= buffer_enc+THRESHOLD-M) return true;
+//     return false;
+//   }
+//   return (current_enc >= buffer_enc && current_enc <= buffer_enc+THRESHOLD);
+
+// }
+
+bool to_schedule(uint16_t const current, uint16_t const buffered) {
+  if(buffered <= UINT16_MAX-THRESHOLD) {
+    return (current >= buffered && current <= (buffered+THRESHOLD));
+  }
+  else // buffered is in max-th+1, max-th+2, ..., max-1, max
+  {
+    return (current >= buffered && current <= UINT16_MAX) || 
+           (current >= 0 && current <= (buffered + THRESHOLD));
+  }
+}
 
 int get_dl_tda(const gNB_MAC_INST *nrmac, int slot)
 {
@@ -739,28 +746,30 @@ static void pf_dl(module_id_t module_id,
   // UEsched_t *iterator = UE_sched;
   
   UEsched_t *iterator = NULL;
-
-  frame_slot curr_fs = {.frame = frame, .slot = slot};
-  int curr_slot_idx = encode_frame_slot(curr_fs) % THRESHOLD;
-
+  printf("\tpf_dl: current slot: (%u, %u) current slot_identifier: %u\n", 
+    frame, slot, slot_identifier);
+  
+  pthread_mutex_lock(&slot_identifier_lock);
+  int curr_slot_idx = slot_identifier % THRESHOLD;
+  
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
-  if(SLOT_BUFFER[curr_slot_idx].frame == -1) {
+  if(SLOT_BUFFER[curr_slot_idx] == UINT32_MAX) {
     use_custom_scheduler = false;
   } 
-  //else if(frame_slot_within_range(SLOT_BUFFER[curr_slot_idx], curr_fs, THRESHOLD)){
-    // some bug here (messages in same frame but within 10 slots end up here.)
-  else if(to_schedule(curr_fs, SLOT_BUFFER[curr_slot_idx])) { 
+  
+  else if(to_schedule(slot_identifier, (uint16_t) SLOT_BUFFER[curr_slot_idx])) {
     use_custom_scheduler = true;
-    printf("Message from frame=%d, slot=%d scheduled at frame=%d, slot=%d\n"
-    , SLOT_BUFFER[curr_slot_idx].frame, SLOT_BUFFER[curr_slot_idx].slot,
-    frame, slot);
+    
+    printf("\tMESSAGE FROM %u SCHEDULED AT %u (FRAME=%d SLOT=%d)\n", SLOT_BUFFER[curr_slot_idx], 
+      slot_identifier, frame, slot);
   }
   else {
     use_custom_scheduler = false;
   }
-  SLOT_BUFFER[curr_slot_idx].frame = -1; 
-  SLOT_BUFFER[curr_slot_idx].slot = -1;
+  
+  SLOT_BUFFER[curr_slot_idx] = UINT32_MAX;
   pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
+  pthread_mutex_unlock(&slot_identifier_lock);
 
   if(use_custom_scheduler) {
     printf("frame: %d, slot: %d ---> USING CUSTOM xApp SCHEDULER\n",frame,slot);
