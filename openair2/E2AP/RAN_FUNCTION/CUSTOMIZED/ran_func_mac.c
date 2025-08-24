@@ -203,10 +203,7 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
     "current slot identifier: %u\n", 
     mac_ctrl_msg.slot, frame, slot, slot_identifier);
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
-  //frame_slot fs = {.frame=mac_ctrl_msg.frame, .slot=mac_ctrl_msg.slot};
-  //int index = encode_frame_slot(fs);
-  //SLOT_BUFFER[index % THRESHOLD].frame = mac_ctrl_msg.frame; 
-  //SLOT_BUFFER[index % THRESHOLD].slot = mac_ctrl_msg.slot;
+  
   SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD] = mac_ctrl_msg.slot;
   pthread_mutex_unlock(&SLOT_BUFFER_LOCK);
 

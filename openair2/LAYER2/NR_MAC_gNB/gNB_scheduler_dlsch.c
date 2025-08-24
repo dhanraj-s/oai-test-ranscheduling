@@ -55,27 +55,6 @@
 #define WORD 32
 //#define SIZE_OF_POINTER sizeof (void *)
 
-// static int encode_frame_slot(frame_slot const fs) {
-//   gNB_MAC_INST *mac = RC.nrmac[0];
-//   int slots_per_frame = mac->frame_structure.numb_slots_frame;
-//   return fs.frame * slots_per_frame + fs.slot; 
-// }
-
-// bool to_schedule(frame_slot const current, frame_slot const buffered) {
-//   // decide whether to schedule the buffered slot in the current slot.
-//   gNB_MAC_INST *mac = RC.nrmac[0];
-//   int slots_per_frame = mac->frame_structure.numb_slots_frame;
-
-//   int current_enc = encode_frame_slot(current), buffer_enc = encode_frame_slot(buffered);
-//   int M = slots_per_frame * NUM_FRAMES;
-//   if(buffer_enc >= M-THRESHOLD && buffer_enc <= M-1) {
-//     if(current_enc >= buffer_enc && current_enc <= M-1) return true;
-//     if(current_enc >= 0 && current_enc <= buffer_enc+THRESHOLD-M) return true;
-//     return false;
-//   }
-//   return (current_enc >= buffer_enc && current_enc <= buffer_enc+THRESHOLD);
-
-// }
 
 bool to_schedule(uint16_t const current, uint16_t const buffered) {
   if(buffered <= UINT16_MAX-THRESHOLD) {
