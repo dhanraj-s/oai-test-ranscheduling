@@ -11,17 +11,28 @@ gNBs =
 
     // Tracking area code, 0x0000 and 0xfffe are reserved values
     tracking_area_code  =  1;
-    plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1, sd = 0xffffff }) });
+    plmn_list = ({
+                  mcc = 208;
+                  mnc = 99;
+                  mnc_length = 2;
+                  snssaiList = (
+                    {
+                      sst = 1;
+                      sd  = 0x1; // 0 false, else true
+                    },
+                    {
+                      sst = 1;
+                      sd  = 0x112233; // 0 false, else true
+                    }
+                  );
+
+                  });
+
     nr_cellid = 12345678L;
 
     ////////// Physical parameters:
 
-    sib1_tda                                                  = 5;
     min_rxtxtime                                              = 6;
-    num_dlharq                                                = 32;
-    num_ulharq                                                = 32;
-    cu_sibs = [2];
-    du_sibs = [19];
 
     servingCellConfigCommon = (
     {
@@ -31,46 +42,46 @@ gNBs =
 
 #  downlinkConfigCommon
     #frequencyInfoDL
-      # GSCN 6221
-      absoluteFrequencySSB                                          = 497770;
-      dl_frequencyBand                                              = 254;
-      # this is 2486.15 MHz
-      dl_absoluteFrequencyPointA                                    = 497230;
+      # this is 2150 MHz + 61 PRBs@30kHz SCS
+      absoluteFrequencySSB                                             = 434392;
+      dl_frequencyBand                                                 = 66;
+      # this is 2150 MHz
+      dl_absoluteFrequencyPointA                                       = 430000;
       #scs-SpecificCarrierList
-        dl_offstToCarrier                                           = 0;
+        dl_offstToCarrier                                              = 0;
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        dl_subcarrierSpacing                                        = 0;
-        dl_carrierBandwidth                                         = 25;
+        dl_subcarrierSpacing                                           = 1;
+        dl_carrierBandwidth                                            = 106;
      #initialDownlinkBWP
       #genericParameters
-        # this is RBstart=0,L=25 (275*(L-1))+RBstart
-        initialDLBWPlocationAndBandwidth                            = 6600;
+        # this is RBstart=0,L=106 (275*(L-1))+RBstart
+        initialDLBWPlocationAndBandwidth                               = 28875; # 13475 6366 12925 12956 28875 12952
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        initialDLBWPsubcarrierSpacing                               = 0;
+        initialDLBWPsubcarrierSpacing                                   = 1;
       #pdcch-ConfigCommon
-        initialDLBWPcontrolResourceSetZero                          = 2;
-        initialDLBWPsearchSpaceZero                                 = 2;
+        initialDLBWPcontrolResourceSetZero                              = 12;
+        initialDLBWPsearchSpaceZero                                     = 0;
 
   #uplinkConfigCommon
      #frequencyInfoUL
-      ul_frequencyBand                                              = 254;
-      # this is 1612.65 MHz
-      ul_absoluteFrequencyPointA                                    = 322530;
+      ul_frequencyBand                                              = 66;
+      # this is 1750 MHz
+      ul_absoluteFrequencyPointA                                    = 350000;
       #scs-SpecificCarrierList
       ul_offstToCarrier                                             = 0;
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      ul_subcarrierSpacing                                          = 0;
-      ul_carrierBandwidth                                           = 25;
+      ul_subcarrierSpacing                                          = 1;
+      ul_carrierBandwidth                                           = 106;
       pMax                                                          = 20;
      #initialUplinkBWP
       #genericParameters
-        initialULBWPlocationAndBandwidth                            = 6600;
+        initialULBWPlocationAndBandwidth                            = 28875;
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        initialULBWPsubcarrierSpacing                               = 0;
+        initialULBWPsubcarrierSpacing                               = 1;
       #rach-ConfigCommon
         #rach-ConfigGeneric
           prach_ConfigurationIndex                                  = 98;
@@ -103,7 +114,7 @@ gNBs =
         prach_RootSequenceIndex                                     = 1;
         # SCS for msg1, can only be 15 for 30 kHz < 6 GHz, takes precendence over the one derived from prach-ConfigIndex
         #
-        msg1_SubcarrierSpacing                                      = 0;
+        msg1_SubcarrierSpacing                                      = 1;
 # restrictedSetConfig
 # 0=unrestricted, 1=restricted type A, 2=restricted type B
         restrictedSetConfig                                         = 0;
@@ -130,13 +141,13 @@ gNBs =
 
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      subcarrierSpacing                                             = 0;
+      subcarrierSpacing                                             = 1;
 
 
   #tdd-UL-DL-ConfigurationCommon
 # subcarrierSpacing
 # 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      referenceSubcarrierSpacing                                    = 0;
+      referenceSubcarrierSpacing                                    = 1;
       # pattern1
       # dl_UL_TransmissionPeriodicity
       # 0=ms0p5, 1=ms0p625, 2=ms1, 3=ms1p25, 4=ms2, 5=ms2p5, 6=ms5, 7=ms10
@@ -147,31 +158,10 @@ gNBs =
       nrofUplinkSymbols                                             = 4;
 
       ssPBCH_BlockPower                                             = -25;
-
-  #ext2
-    #ntn_Config_r17
-      cellSpecificKoffset_r17                                       = 40;
-      ta-Common-r17                                                 = 4627000; # 18.84 ms
-      ta-CommonDrift-r17                                            = -230000; # -46 µs/s
-      positionX-r17                                                 = 0;
-      positionY-r17                                                 = -2166908; # -2816980.4 m
-      positionZ-r17                                                 =  4910784; #  6384019.2 m
-      velocityVX-r17                                                = 0;
-      velocityVY-r17                                                = 115246; # 6914.76 m/s
-      velocityVZ-r17                                                =  50853; # 3051.18 m/s
   }
 
   );
 
-    TIMERS :
-    {
-      sr_ProhibitTimer       = 0;
-      sr_TransMax            = 64;
-      sr_ProhibitTimer_v1700 = 512;
-      t300                   = 2000;
-      t301                   = 2000;
-      t319                   = 2000;
-    };
 
     # ------- SCTP definitions
     SCTP :
@@ -187,8 +177,8 @@ gNBs =
 
     NETWORK_INTERFACES :
     {
-        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "192.168.71.140/26";
-        GNB_IPV4_ADDRESS_FOR_NGU                 = "192.168.71.140/26";
+        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "192.168.71.129/26";
+        GNB_IPV4_ADDRESS_FOR_NGU                 = "192.168.71.129/26";
         GNB_PORT_FOR_S1U                         = 2152; # Spec 2152
     };
 
@@ -200,11 +190,8 @@ MACRLCs = (
   num_cc                      = 1;
   tr_s_preference             = "local_L1";
   tr_n_preference             = "local_RRC";
-#  ulsch_max_frame_inactivity  = 0;
   pusch_TargetSNRx10          = 150;
   pucch_TargetSNRx10          = 200;
-  dl_max_mcs                  = 9;
-  ul_max_mcs                  = 9;
 }
 );
 
@@ -212,7 +199,7 @@ L1s = (
 {
   num_cc = 1;
   tr_n_preference       = "local_mac";
-  prach_dtx_threshold   = 150;
+  prach_dtx_threshold   = 120;
   pucch0_dtx_threshold  = 150;
   ofdm_offset_divisor   = 8; #set this to UINT_MAX for offset 0
 }
@@ -237,30 +224,14 @@ RUs = (
     }
 );
 
+
 rfsimulator :
 {
   serveraddr = "server";
   serverport = 4043;
-  options = ("chanmod"); #("saviq"); or/and "chanmod"
-  prop_delay = 20;
+  options = (); #("saviq"); or/and "chanmod"
+  modelname = "AWGN";
   IQfile = "/tmp/rfsimulator.iqs";
-};
-
-channelmod = {
-  max_chan=10;
-  modellist="modellist_rfsimu_1";
-  modellist_rfsimu_1 = (
-    {
-      model_name     = "rfsimu_channel_enB0"
-      type           = "SAT_LEO_TRANS";
-      noise_power_dB = -100;
-    },
-    {
-      model_name     = "rfsimu_channel_ue0"
-      type           = "SAT_LEO_TRANS";
-      noise_power_dB = -100;
-    }
-  );
 };
 
 security = {
@@ -289,10 +260,7 @@ log_config :
   rlc_log_level                         ="info";
   pdcp_log_level                        ="info";
   rrc_log_level                         ="info";
+  ngap_log_level                        ="debug";
+  f1ap_log_level                        ="debug";
 };
-
-e2_agent = {
-  near_ric_ip_addr = "127.0.0.1";
-  sm_dir = "/usr/local/lib/flexric/";
-}
 

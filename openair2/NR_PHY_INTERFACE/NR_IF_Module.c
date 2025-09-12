@@ -396,7 +396,7 @@ static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame
   // printf("\run_scheduler_monolithic: frame=%d slot=%d\n\n\n\n", frame, slot);
   NR_IF_Module_t *ifi = nr_if_inst[module_id];
 
-  printf("run_scheduler_monolithic: (%u, %u) slot_identifier: %u\n", 
+  printf("\n\nrun_scheduler_monolithic: (%u, %u) slot_identifier: %u\n", 
     frame, slot, slot_identifier);
 
   LOG_D(NR_MAC, "Calling scheduler for %d.%d\n", frame, slot);

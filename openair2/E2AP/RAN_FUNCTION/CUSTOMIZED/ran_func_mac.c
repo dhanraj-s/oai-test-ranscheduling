@@ -71,9 +71,13 @@ bool read_mac_sm(void* data)
                   // in parallel, so this has no real meaning
     //rd->slot = RC.ru[0]->proc.tti_tx;
     rd->slot = slot_identifier;
-    printf("\tMAC ind msg: slot_identifier: %d", rd->slot);
-    printf("\tread_mac_sm:\tframe = %d, slot = %d\n", RC.nrmac[mod_id]->frame,
-      RC.ru[0]->proc.tti_tx);
+    // printf("MAC ind msg: slot_identifier: %d", rd->slot);
+    // printf("read_mac_sm:\tframe = %d, slot = %d\n", RC.nrmac[mod_id]->frame,
+    //   RC.ru[0]->proc.tti_tx);
+
+    printf("read_mac_sm: Sending MAC indication message. \n\tframe = %d, slot = %d (not reliable), slot_identifier = %u\n\n",
+    RC.nrmac[mod_id]->frame, RC.ru[0]->proc.tti_tx, slot_identifier);
+
     rd->dl_aggr_tbs = UE->mac_stats.dl.total_bytes;
     rd->ul_aggr_tbs = UE->mac_stats.ul.total_bytes;
 
@@ -131,7 +135,7 @@ bool read_mac_sm(void* data)
 
     ++i;
   }
-  //slot_identifier++; why did i write this?
+  //slot_identifier++; a bug. why did i write this?
   return num_ues > 0;
 }
 
@@ -199,9 +203,12 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   gNB_MAC_INST *mac = RC.nrmac[mod_id];
   NR_UEs_t *UE_info = &mac->UE_info;
 
-  printf("write_ctrl_mac_sm:\n\tControl message contains: slot identifier= %u\n\tCurrent frame,slot: frame=%d, slot= %d\n\t"
-    "current slot identifier: %u\n", 
-    mac_ctrl_msg.slot, frame, slot, slot_identifier);
+  // printf("write_ctrl_mac_sm:\n\tControl message contains: slot identifier= %u\n\tCurrent frame,slot: frame=%d, slot= %d\n\t"
+  //   "current slot identifier: %u\n", 
+  //   mac_ctrl_msg.slot, frame, slot, slot_identifier);
+
+  printf("write_ctrl_mac_sm:\n\tControl message contains: frame=%d, slot=%d, slot_identifier=%u\n\n", frame, slot, slot_identifier);
+
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
   
   SLOT_BUFFER[mac_ctrl_msg.slot % THRESHOLD] = mac_ctrl_msg.slot;

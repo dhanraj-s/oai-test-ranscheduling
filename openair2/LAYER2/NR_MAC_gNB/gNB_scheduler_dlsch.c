@@ -739,7 +739,7 @@ static void pf_dl(module_id_t module_id,
   else if(to_schedule(slot_identifier, (uint16_t) SLOT_BUFFER[curr_slot_idx])) {
     use_custom_scheduler = true;
     
-    printf("\tMESSAGE FROM %u SCHEDULED AT %u (FRAME=%d SLOT=%d)\n", SLOT_BUFFER[curr_slot_idx], 
+    printf("\t\tMESSAGE FROM %u SCHEDULED AT %u (FRAME=%d SLOT=%d)\n", SLOT_BUFFER[curr_slot_idx], 
       slot_identifier, frame, slot);
   }
   else {
@@ -751,11 +751,11 @@ static void pf_dl(module_id_t module_id,
   pthread_mutex_unlock(&slot_identifier_lock);
 
   if(use_custom_scheduler) {
-    printf("frame: %d, slot: %d ---> USING CUSTOM xApp SCHEDULER\n",frame,slot);
+    printf("\t\t\tframe: %d, slot: %d ---> USING CUSTOM xApp SCHEDULER\n",frame,slot);
     iterator = UEsched_list;
     use_custom_scheduler = false;  
   } else {
-    printf("frame: %d, slot: %d ---> USING RAN SCHEDULER\n",frame,slot);
+    printf("\t\t\tframe: %d, slot: %d ---> USING RAN SCHEDULER\n",frame,slot);
     iterator = UE_sched;
   }
 
