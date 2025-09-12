@@ -411,9 +411,7 @@ static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame
   sched_info->frame = frame;
   sched_info->slot = slot;
 
-  pthread_mutex_lock(&slot_identifier_lock);
-  slot_identifier++;
-  pthread_mutex_unlock(&slot_identifier_lock);
+  
 
   /*
   sched_info->DL_req      = &mac->DL_req[CC_id];
@@ -435,6 +433,10 @@ static void run_scheduler_monolithic(module_id_t module_id, int CC_id, int frame
         sched_info->frame,
         sched_info->slot,
         sched_info->DL_req.dl_tti_request_body.nPDUs);
+  
+  // pthread_mutex_lock(&slot_identifier_lock);
+  // slot_identifier++;
+  // pthread_mutex_unlock(&slot_identifier_lock);
 }
 
 void NR_UL_indication(NR_UL_IND_t *UL_info) {

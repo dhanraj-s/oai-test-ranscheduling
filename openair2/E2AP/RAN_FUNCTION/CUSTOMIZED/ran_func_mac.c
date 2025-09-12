@@ -207,7 +207,8 @@ sm_ag_if_ans_t write_ctrl_mac_sm(void const* data)
   //   "current slot identifier: %u\n", 
   //   mac_ctrl_msg.slot, frame, slot, slot_identifier);
 
-  printf("write_ctrl_mac_sm:\n\tControl message contains: frame=%d, slot=%d, slot_identifier=%u\n\n", frame, slot, slot_identifier);
+  printf("write_ctrl_mac_sm:\n\tCurrent slot info: frame=%d, slot=%d, slot_identifier=%u\n"
+    "\tControl message contains: %u\n", frame, slot, slot_identifier, mac_ctrl_msg.slot);
 
   pthread_mutex_lock(&SLOT_BUFFER_LOCK);
   

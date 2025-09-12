@@ -69,6 +69,8 @@ static int DEFRUTPCORES[] = {-1,-1,-1,-1};
 #include <nfapi/oai_integration/vendor_ext.h>
 #include "executables/nr-softmodem-common.h"
 
+#include "../openair2/LAYER2/NR_MAC_gNB/gNB_frame_slot_buffer.h"
+
 static void NRRCconfig_RU(configmodule_interface_t *cfg);
 
 /*************************************************************/
@@ -699,6 +701,10 @@ static void rx_rf(RU_t *ru, int *frame, int *slot)
     //exit_fun( "problem receiving samples" );
     LOG_E(PHY, "problem receiving samples\n");
   }
+
+  pthread_mutex_lock(&slot_identifier_lock);
+  slot_identifier++;
+  pthread_mutex_unlock(&slot_identifier_lock);
 
   stop_meas(&ru->rx_fhaul);
 }

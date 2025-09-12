@@ -70,6 +70,8 @@
 #include "time_meas.h"
 #include "utils.h"
 
+#include "openair2/LAYER2/NR_MAC_gNB/gNB_frame_slot_buffer.h"
+
 #define TICK_TO_US(ts) (ts.trials==0?0:ts.diff/ts.trials)
 #define L1STATSSTRLEN 16384
 static void rx_func(processingData_L1_t *param);
@@ -138,6 +140,9 @@ static void tx_func(processingData_L1tx_t *info)
     LOG_D(NR_PHY, "Calling deref_sched_response for id %d (tx_func) in %d.%d\n", info->sched_response_id, frame_tx, slot_tx);
     deref_sched_response(info->sched_response_id);
   }
+  // pthread_mutex_lock(&slot_identifier_lock);
+  // slot_identifier++;
+  // pthread_mutex_unlock(&slot_identifier_lock);
 }
 
 void *L1_rx_thread(void *arg) 
